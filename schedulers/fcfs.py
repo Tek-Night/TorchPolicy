@@ -56,26 +56,3 @@ def fcfs(processes):
         current_time = completion
 
     return results, gantt
-
-if __name__ == "__main__":
-    processes = [
-        {"pid": "P1", "arrival": 0, "burst": 5},
-        {"pid": "P2", "arrival": 1, "burst": 3},
-        {"pid": "P3", "arrival": 2, "burst": 1}
-    ]
-
-    results, gantt = sjf(processes)
-
-    print("Process results:")
-    for result in results:
-        print(result)
-
-    print("\nGantt chart:")
-    for segment in gantt:
-        print(segment)
-
-    avg_waiting = sum(
-        r["waiting"] for r in results
-    ) / len(results)
-
-    print(f"\nAverage waiting time: {avg_waiting:.2f}")
