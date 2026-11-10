@@ -1,0 +1,5 @@
+# Ignore all environment variable files
+.env
+.env*.local
+*.env
+playground.ipynb
