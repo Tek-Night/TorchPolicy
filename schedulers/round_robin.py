@@ -73,7 +73,7 @@ def round_robin(processes, quantum):
         # if ready queue empty, CPU idle
         if not ready_queue:
 
-            next_arrival = processes[order[next_index]["arrival"]]
+            next_arrival = processes[order[next_index]]["arrival"]
 
             add_segment("IDLE", current_time, next_arrival)
 
