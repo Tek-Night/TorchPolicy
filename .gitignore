@@ -4,3 +4,5 @@
 *.env
 playground.ipynb
 archive/
+data/__pycache__
+neural/__pycache__
