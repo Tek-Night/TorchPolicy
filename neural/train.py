@@ -108,3 +108,55 @@ def split_data(X, targets, scores, workload_ids):
 
     return train_data, val_data, test_data
 
+
+def normalize_data(train_data, val_data, test_data):
+
+    # training inputs
+    X_train = train_data[0]
+
+    # calculating mean and standard deviation (only using training data)
+  
+    mean = X_train.mean(axis = 0)
+    std = X_train.std(axis = 0)
+
+    # avoid / by 0 
+    std[std == 0] = 1.0
+
+    # normaliziing 
+    X_train = (train_data[0] - mean) / std
+    X_val = (val_data[0] - mean) / std
+    X_test = (test_data[0] - mean)/ std
+
+    # preserving targets & actual score
+    train_data = (X_train, train_data[1], train_data[2])
+    val_data = (X_val, val_data[1], val_data[2])
+    test_data = (X_test, test_data[1], test_data[2])
+
+    return train_data, val_data, test_data, mean, std
+
+
+# dataloaders finally!!!
+
+def create_dataloaders(train_data, val_data, test_data):
+
+    def make_loader(data, shuffle):
+
+        # np arrays -> tensors
+        X_tensor = torch.tensor(data[0], dtype = torch.float32) 
+
+        targets_tensor = torch.tensor(data[1], dtype = torch.float32)
+
+        dataset = TensorDataset(X_tensor, targets_tensor)
+
+        loader = DataLoader(dataset,
+                            batch_size = BATCH_SIZE,
+                            shuffle = shuffle)
+
+        return loader
+
+    train_loader = make_loader(train_data, shuffle = True)
+    val_loader = make_loader(val_data, shuffle= False)
+    test_loader = make_loader(test_data, shuffle = False)
+
+    return train_loader, val_loader, test_loader
+
