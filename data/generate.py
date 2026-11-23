@@ -6,7 +6,6 @@ from pathlib import Path
 from compare import compare_schedulers
 
 DATA_DIR = Path(__file__).resolve().parent
-
 POLICY_NAMES = {
     "FCFS": "fcfs",
     "SJF": "sjf",
@@ -17,6 +16,7 @@ POLICY_NAMES = {
 }
 
 def generate_workload(rng):
+
     n = rng.randint(4, 18)
 
     # generating diff arrival patterns
@@ -30,7 +30,7 @@ def generate_workload(rng):
         arrivals = [rng.randint(0,3*n) for _ in range(n)]
     elif arrival_pattern == "bursty":
         arrivals = [
-            rng.choice([0, n, 2*n]) + rng.randint(0,2)
+            rng.choice([0, n, 2*n]) +rng.randint(0,2)
             for _ in range(n)
         ]
     else:

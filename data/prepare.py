@@ -3,15 +3,7 @@ import csv
 import math
 import random
 from pathlib import Path
-
-from data.label import (
-    POLICIES,
-    PROFILES,
-    FEATURES,
-    METRICS,
-    calculate_scores
-)
-
+from data.label import (POLICIES, PROFILES, FEATURES, METRICS, calculate_scores)
 DATA_DIR = Path(__file__).resolve().parent
 
 TEMPERATURE = 0.1
@@ -21,83 +13,61 @@ SEED = 42
 
 def generate_preferences(rng):
     """
-    Generate random weights that sum to 1.
-
-    Uses a Dirichlet-style distribution so that
-    different metrics can have different importance.
+    Generates random weights that sum to 1!
     """
-
-    values = [
-        rng.gammavariate(0.7, 1.0)
-        for _ in METRICS
-    ]
+    values = [rng.gammavariate(0.7, 1.0) for _ in METRICS]
 
     total = sum(values)
 
-    return {
-        metric: value / total
-        for metric, value in zip(METRICS, values)
-    }
+    return {metric: value / total for metric, value in zip(METRICS, values)}
 
 
 def create_soft_targets(scores, temperature=0.1):
     """
-    Convert scheduler costs into a probability
-    distribution.
-
-    Lower costs produce higher target probabilities.
+    Schedular costs -> probability distribution
+    Lower cost = higher target probability
     """
-
     if temperature <= 0:
-        raise ValueError("Temperature must be positive")
+        raise ValueError("temperature must be +ve !!!")
 
     minimum = min(scores.values())
 
-    exponentials = {
-        policy: math.exp(
-            -(scores[policy] - minimum) / temperature
-        )
-        for policy in POLICIES
-    }
+    exponentials = {policy: math.exp(-(scores[policy] - minimum) / temperature) for policy in POLICIES}
 
     total = sum(exponentials.values())
 
-    return {
-        policy: exponentials[policy] / total
-        for policy in POLICIES
-    }
+    return {policy: exponentials[policy] / total for policy in POLICIES}
 
 
 def create_training_row(workload, profile, weights):
-    # Calculate the real costs for all policies
+
+    # calculating real costs for the scheduling algorithms
     scores = calculate_scores(workload, weights)
 
-    # Convert costs into soft labels
-    targets = create_soft_targets(
-        scores,
-        temperature=TEMPERATURE
-    )
+    # costs -> soft labels
+    targets = create_soft_targets(scores, temperature=TEMPERATURE)
 
     row = {
         "workload_id": workload["workload_id"],
         "profile": profile
     }
-
-    # Input: workload characteristics
+    
+    # workload characteristics[INPUT]
     for feature in FEATURES:
         row[feature] = workload[feature]
 
-    # Input: user preference weights
+    # user preference weights[INPUT]
     for metric in METRICS:
         row[f"weight_{metric}"] = weights[metric]
 
-    # Actual costs, used for evaluation
+    # actual costs for eval
     for policy in POLICIES:
         row[f"score_{policy}"] = scores[policy]
 
-    # Soft training targets
+    # soft training targets
     for policy in POLICIES:
         row[f"target_{policy}"] = targets[policy]
+
 
     return row
 
@@ -118,7 +88,6 @@ def prepare():
 
     for workload in benchmarks:
 
-        # Existing five performance profiles
         for profile, weights in PROFILES.items():
             rows.append(
                 create_training_row(
@@ -128,7 +97,6 @@ def prepare():
                 )
             )
 
-        # Additional random preference combinations
         for i in range(RANDOM_PREFERENCES):
             weights = generate_preferences(rng)
 
@@ -141,10 +109,7 @@ def prepare():
             )
 
     with output_path.open("w", newline="") as file:
-        writer = csv.DictWriter(
-            file,
-            fieldnames=rows[0].keys()
-        )
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
 
         writer.writeheader()
         writer.writerows(rows)
@@ -155,13 +120,10 @@ def prepare():
     print(f"Total training examples: {len(rows)}")
     print(f"Saved: {output_path}")
 
-    # Verify that each target distribution sums to 1
+    # verification of the sum == 1
     sample = rows[0]
 
-    target_sum = sum(
-        sample[f"target_{policy}"]
-        for policy in POLICIES
-    )
+    target_sum = sum(sample[f"target_{policy}"] for policy in POLICIES)
 
     print(f"Sample target sum: {target_sum:.6f}")
 

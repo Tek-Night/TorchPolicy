@@ -2,14 +2,10 @@ from schedulers.fcfs import fcfs
 from schedulers.sjf import sjf
 from schedulers.srtf import srtf
 from schedulers.round_robin import round_robin
-from schedulers.priority import (
-    priority_non_preemptive,
-    priority_preemptive
-)
+from schedulers.priority import (priority_non_preemptive, priority_preemptive)
 
 
 def compare_schedulers(processes, quantum=2):
-
     schedulers = {
         "FCFS": fcfs,
         "SJF": sjf,
@@ -18,27 +14,19 @@ def compare_schedulers(processes, quantum=2):
         "Priority NP": priority_non_preemptive,
         "Priority P": priority_preemptive
     }
-
     comparison = {}
 
     for name, scheduler in schedulers.items():
 
-        # Give each scheduler its own copy of the workload
         workload = [p.copy() for p in processes]
 
         results, gantt = scheduler(workload)
 
-        avg_waiting = sum(
-            r["waiting"] for r in results
-        ) / len(results)
+        avg_waiting = sum(r["waiting"] for r in results) / len(results)
 
-        avg_turnaround = sum(
-            r["turnaround"] for r in results
-        ) / len(results)
+        avg_turnaround = sum(r["turnaround"] for r in results) / len(results)
 
-        avg_response = sum(
-            r["response"] for r in results
-        ) / len(results)
+        avg_response = sum(r["response"] for r in results) / len(results)
 
         comparison[name] = {
             "avg_waiting": avg_waiting,
@@ -47,6 +35,7 @@ def compare_schedulers(processes, quantum=2):
             "gantt": gantt,
             "results": results
         }
+
 
     return comparison
 
@@ -58,7 +47,6 @@ if __name__ == "__main__":
         {"pid": "P2", "arrival": 1, "burst": 3, "priority": 1},
         {"pid": "P3", "arrival": 2, "burst": 1, "priority": 2}
     ]
-
     comparison = compare_schedulers(processes)
 
     print(

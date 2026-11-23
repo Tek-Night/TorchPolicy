@@ -3,12 +3,9 @@ from collections import Counter
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent
+POLICIES = [ "fcfs", "sjf", "srtf", "rr", "priority_np", "priority_p" ]
 
-POLICIES = [
-    "fcfs", "sjf", "srtf", "rr",
-    "priority_np", "priority_p"
-]
-
+#
 FEATURES = [
     "num_processes",
     "mean_burst",
@@ -24,7 +21,6 @@ FEATURES = [
     "high_priority_fraction"
 ]
 
-# Each profile's weights sum to 1
 PROFILES = {
     "waiting": {
         "avg_waiting": 0.80,
@@ -65,31 +61,23 @@ PROFILES = {
 
 METRICS = list(PROFILES["balanced"].keys())
 
-
 def calculate_scores(row, weights):
+
     scores = {policy: 0.0 for policy in POLICIES}
 
     for metric in METRICS:
-        values = {
-            policy: float(row[f"{policy}_{metric}"])
-            for policy in POLICIES
+        values = {policy: float(row[f"{policy}_{metric}"]) for policy in POLICIES
         }
 
         minimum = min(values.values())
         maximum = max(values.values())
 
-        # If every scheduler performs identically,
-        # this metric cannot distinguish them.
         if maximum == minimum:
             continue
 
         for policy in POLICIES:
-            normalized = (
-                (values[policy] - minimum)
-                / (maximum - minimum)
-            )
-
-            scores[policy] += weights[metric] * normalized
+            normalized = ((values[policy] - minimum)/ (maximum - minimum))
+            scores[policy] += weights[metric]*normalized
 
     return scores
 
@@ -110,10 +98,9 @@ def create_labels():
             scores = calculate_scores(row, weights)
             best_score = min(scores.values())
 
-            # Avoid arbitrary labels when policies tie
+            # incase policiess ties
             winners = [
-                policy for policy, score in scores.items()
-                if abs(score - best_score) < 1e-9
+                policy for policy, score in scores.items()  if abs(score - best_score) < 1e-9
             ]
 
             if len(winners) != 1:
@@ -138,20 +125,15 @@ def create_labels():
 
     if not training_rows:
         raise ValueError(
-            "No uniquely labeled workloads were generated"
+            "no uniquely labeled workloads were generated!"
         )
 
     with output_path.open("w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=training_rows[0].keys()
-        )
+        writer = csv.DictWriter(f, fieldnames=training_rows[0].keys())
         writer.writeheader()
         writer.writerows(training_rows)
 
-    distribution = Counter(
-        row["best_policy"] for row in training_rows
-    )
+    distribution = Counter(row["best_policy"] for row in training_rows)
 
     print(f"Training examples: {len(training_rows)}")
     print(f"Skipped ambiguous ties: {skipped_ties}")

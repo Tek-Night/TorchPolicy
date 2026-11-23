@@ -2,12 +2,7 @@
 import csv
 from collections import Counter
 from pathlib import Path
-
-from data.label import (
-    POLICIES,
-    PROFILES,
-    calculate_scores
-)
+from data.label import (POLICIES, PROFILES, calculate_scores)
 
 DATA_DIR = Path(__file__).resolve().parent
 
@@ -21,15 +16,12 @@ def analyze():
     print(f"Total workloads: {len(benchmarks)}")
 
     for profile, weights in PROFILES.items():
-
         unique_winners = Counter()
         tied_winners = Counter()
-
         unique_count = 0
         tie_count = 0
 
         for row in benchmarks:
-
             scores = calculate_scores(row, weights)
             best_score = min(scores.values())
 
@@ -39,33 +31,30 @@ def analyze():
             ]
 
             if len(winners) == 1:
-                unique_count += 1
-                unique_winners[winners[0]] += 1
+                unique_count = unique_count+1
+                unique_winners[winners[0]] = unique_winners[winners[0]]+1
 
             else:
-                tie_count += 1
+                tie_count = tie_count + 1
 
                 for policy in winners:
-                    tied_winners[policy] += 1
+                    tied_winners[policy] = tied_winners[policy] + 1
 
         print(f"\n{'=' * 45}")
         print(f"PROFILE: {profile.upper()}")
         print(f"{'=' * 45}")
-
         print(f"Unique winners: {unique_count}")
         print(f"Tied workloads: {tie_count}")
-
         print("\nPolicy          Unique wins    In ties")
         print("-" * 43)
 
         for policy in POLICIES:
-            print(
-                f"{policy:<15}"
-                f"{unique_winners[policy]:<15}"
-                f"{tied_winners[policy]}"
-            )
+            #printing it all
+            print(f"{policy:<15}\n{unique_winners[policy]:<15}\n{tied_winners[policy]}")
 
-    print("\nAnalysis complete.")
+
+    print("\n\nAnalysis complete!!!")
+
 
 
 if __name__ == "__main__":
