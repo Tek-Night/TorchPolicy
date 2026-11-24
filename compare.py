@@ -3,6 +3,7 @@ from schedulers.sjf import sjf
 from schedulers.srtf import srtf
 from schedulers.round_robin import round_robin
 from schedulers.priority import (priority_non_preemptive, priority_preemptive)
+from gantt_chart import plot_gantt_charts
 
 
 def compare_schedulers(processes, quantum=2):
@@ -72,3 +73,5 @@ if __name__ == "__main__":
     )
 
     print(f"\nBest scheduler (waiting time): {best}")
+
+    plot_gantt_charts(comparison)
